@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Build">
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <Product>FluentValidation for SmartEnums</Product>
+    <PackageId>FluentValidation.SmartEnum</PackageId>
+    <Description>FluentValidation extension methods for Ardalis SmartEnum validation.</Description>
+    <PackageTags>fluentvalidation;smartenum;validation</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Ardalis.SmartEnum" />
+  </ItemGroup>
+  
+</Project>
