@@ -29,12 +29,12 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
       - name: "Install .NET Core SDK"
-        uses: actions/setup-dotnet@v2.1.0
+        uses: actions/setup-dotnet@v6
       - name: "Dotnet Tool Restore"
         run: dotnet tool restore
         shell: pwsh
@@ -48,7 +48,7 @@ jobs:
         run: dotnet cake --target=Pack
         shell: pwsh
       - name: "Publish Artifacts"
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v7
         with:
           name: ${{matrix.os}}
           path: "./Artifacts"
@@ -65,9 +65,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: "Download Artifact"
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v8
         with:
           name: "windows-latest"
+          digest-mismatch: warn
       - name: "Dotnet NuGet Add Source"
         run: dotnet nuget add source https://nuget.pkg.github.com/no-ordinary-dev/index.json --name GitHub --username no-ordinary-dev --password ${{secrets.GITHUB_TOKEN}}
         shell: pwsh
@@ -85,9 +86,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: "Download Artifact"
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v8
         with:
           name: "windows-latest"
+          digest-mismatch: warn
       - name: "Dotnet NuGet Push"
         run: |
           Get-ChildItem .\ -Filter *.nupkg |
