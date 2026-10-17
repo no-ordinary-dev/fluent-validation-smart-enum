@@ -111,9 +111,3 @@ RuleFor(x => x.OptionalPriorityId)
 - Excluded and undeclared property values both fail with `EnumValidator`, the
   default FluentValidation message, and the original attempted value. Use
   `.WithMessage(...)` to customize the message.
-
-## Breaking change: instance method rename
-
-Replace `.IsSmartEnum()` with `.IsInSmartEnum()` on SmartEnum instance rules.
-`IsSmartEnum` has been removed; no obsolete alias is retained. Existing
-underlying-value rules already use `IsInSmartEnum` and need no rename.
