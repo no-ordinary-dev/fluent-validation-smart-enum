@@ -6,7 +6,7 @@
 
   <PropertyGroup Label="Package">
     <Product>FluentValidation for SmartEnums</Product>
-    <PackageId>FluentValidation.SmartEnum</PackageId>
+    <PackageId>NoOrdinaryDev.FluentValidation.SmartEnum</PackageId>
     <Description>FluentValidation extension methods for Ardalis SmartEnum validation.</Description>
     <PackageTags>fluentvalidation;smartenum;validation</PackageTags>
   </PropertyGroup>
