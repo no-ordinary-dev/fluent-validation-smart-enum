@@ -80,6 +80,8 @@ jobs:
     name: "Push NuGet Packages"
     needs: build
     if: github.event_name == 'release'
+    permissions:
+      id-token: write
     environment:
       name: "NuGet"
       url: https://www.nuget.org/packages/NoOrdinaryDev.FluentValidation.SmartEnum
@@ -90,9 +92,16 @@ jobs:
         with:
           name: "windows-latest"
           digest-mismatch: warn
+      - name: "NuGet Login"
+        uses: NuGet/login@v1.2.0
+        id: nuget-login
+        with:
+          user: ${{ vars.NUGET_USER }}
       - name: "Dotnet NuGet Push"
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
           Get-ChildItem .\ -Filter *.nupkg |
           Where-Object { !$_.Name.Contains('preview') } |
-          ForEach-Object { dotnet nuget push $_ --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{secrets.NUGET_API_KEY}} }
+          ForEach-Object { dotnet nuget push $_ --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key "$env:NUGET_API_KEY" }
         shell: pwsh

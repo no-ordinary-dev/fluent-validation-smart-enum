@@ -111,3 +111,19 @@ RuleFor(x => x.OptionalPriorityId)
 - Excluded and undeclared property values both fail with `EnumValidator`, the
   default FluentValidation message, and the original attempted value. Use
   `.WithMessage(...)` to customize the message.
+
+## Publishing releases
+
+NuGet.org publishing uses [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
+with GitHub OIDC instead of a stored API key. Before publishing a release:
+
+1. On NuGet.org, a package owner must create a GitHub Trusted Publishing policy
+   for `NoOrdinaryDev.FluentValidation.SmartEnum` with repository owner
+   `no-ordinary-dev`, repository `fluent-validation-smart-enum`, workflow file
+   `build.yml`, and GitHub environment `NuGet` (case-sensitive).
+2. Set the GitHub Actions variable `NUGET_USER` in the `NuGet` environment to the
+   NuGet.org username that owns the policy.
+
+The release-only publishing job exchanges its OIDC token for a short-lived key
+using `NuGet/login`. The `NUGET_API_KEY` secret is no longer used and can be
+removed. GitHub Packages publishing is unchanged.
