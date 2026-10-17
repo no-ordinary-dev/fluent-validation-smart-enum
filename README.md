@@ -111,3 +111,8 @@ RuleFor(x => x.OptionalPriorityId)
 - Excluded and undeclared property values both fail with `EnumValidator`, the
   default FluentValidation message, and the original attempted value. Use
   `.WithMessage(...)` to customize the message.
+
+## Publishing releases
+
+NuGet.org publishing uses [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
+with GitHub OIDC instead of a stored API key.
