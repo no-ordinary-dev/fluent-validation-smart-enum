@@ -38,11 +38,11 @@ public class SmartEnumInstanceValidationExtensionsTests
     {
         public ModelValidator()
         {
-            this.RuleFor(x => x.PriorityId).IsSmartEnum();
-            this.RuleFor(x => x.PriorityIdNonNullable).IsSmartEnum();
-            this.RuleFor(x => x.State).IsSmartEnum();
-            this.RuleFor(x => x.StateNonNullable).IsSmartEnum();
-            this.RuleFor(x => x.DefaultPriority).IsSmartEnum();
+            this.RuleFor(x => x.PriorityId).IsInSmartEnum();
+            this.RuleFor(x => x.PriorityIdNonNullable).IsInSmartEnum();
+            this.RuleFor(x => x.State).IsInSmartEnum();
+            this.RuleFor(x => x.StateNonNullable).IsInSmartEnum();
+            this.RuleFor(x => x.DefaultPriority).IsInSmartEnum();
         }
     }
 
@@ -121,11 +121,11 @@ public class SmartEnumInstanceValidationExtensionsTests
         var model = new Model();
         if (nullableProperty)
         {
-            validator.RuleFor(x => x.PriorityId).IsSmartEnum().NotNull();
+            validator.RuleFor(x => x.PriorityId).IsInSmartEnum().NotNull();
         }
         else
         {
-            validator.RuleFor(x => x.PriorityIdNonNullable).NotNull().IsSmartEnum();
+            validator.RuleFor(x => x.PriorityIdNonNullable).NotNull().IsInSmartEnum();
             model.PriorityIdNonNullable = null!;
         }
 
