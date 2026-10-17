@@ -86,12 +86,67 @@ jobs:
       name: "NuGet"
       url: https://www.nuget.org/packages/NoOrdinaryDev.FluentValidation.SmartEnum
     runs-on: windows-latest
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_KEY_VAULT_URL: ${{ vars.AZURE_KEY_VAULT_URL }}
+      AZURE_KEY_VAULT_CERTIFICATE_NAME: ${{ vars.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+      NUGET_SIGNING_CERTIFICATE_SHA256: ${{ vars.NUGET_SIGNING_CERTIFICATE_SHA256 }}
     steps:
       - name: "Download Artifact"
         uses: actions/download-artifact@v8
         with:
           name: "windows-latest"
           digest-mismatch: warn
+      - name: "Validate Signing Configuration"
+        shell: pwsh
+        run: |
+          foreach ($name in @('AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_KEY_VAULT_URL', 'AZURE_KEY_VAULT_CERTIFICATE_NAME', 'NUGET_SIGNING_CERTIFICATE_SHA256')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "Missing NuGet environment variable: $name. See docs/nuget-signing.md."
+            }
+          }
+          if ($env:NUGET_SIGNING_CERTIFICATE_SHA256 -notmatch '^[0-9A-Fa-f]{64}$') {
+            throw 'NUGET_SIGNING_CERTIFICATE_SHA256 must be a SHA-256 certificate fingerprint (64 hexadecimal characters, no separators).'
+          }
+      - name: "Install Signing SDK"
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: "Install Sign CLI"
+        shell: pwsh
+        run: dotnet tool install sign --version 0.9.1-beta.26475.3 --tool-path "$env:RUNNER_TEMP\sign-tool" --source https://api.nuget.org/v3/index.json
+      - name: "Azure Login"
+        uses: azure/login@v3
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: "Sign and Verify NuGet Packages"
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem .\ -File -Filter *.nupkg |
+            Where-Object { !$_.Name.Contains('preview') })
+          if ($packages.Count -eq 0) {
+            throw 'No non-preview NuGet packages were found to sign and publish.'
+          }
+          foreach ($package in $packages) {
+            & "$env:RUNNER_TEMP\sign-tool\sign.exe" code azure-key-vault $package.FullName `
+              --azure-key-vault-url "$env:AZURE_KEY_VAULT_URL" `
+              --azure-key-vault-certificate "$env:AZURE_KEY_VAULT_CERTIFICATE_NAME" `
+              --azure-credential-type azure-cli `
+              --recurse-containers false `
+              --file-digest sha256 `
+              --timestamp-url http://timestamp.digicert.com `
+              --timestamp-digest sha256
+            if ($LASTEXITCODE -ne 0) {
+              throw "NuGet author signing failed for $($package.Name)."
+            }
+            dotnet nuget verify $package.FullName --all --certificate-fingerprint "$env:NUGET_SIGNING_CERTIFICATE_SHA256"
+            if ($LASTEXITCODE -ne 0) {
+              throw "NuGet signature verification failed for $($package.Name)."
+            }
+          }
       - name: "NuGet Login"
         uses: NuGet/login@v1.2.0
         id: nuget-login
@@ -101,7 +156,12 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
-          Get-ChildItem .\ -Filter *.nupkg |
+          Get-ChildItem .\ -File -Filter *.nupkg |
           Where-Object { !$_.Name.Contains('preview') } |
-          ForEach-Object { dotnet nuget push $_ --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key "$env:NUGET_API_KEY" }
+          ForEach-Object {
+            dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key "$env:NUGET_API_KEY"
+            if ($LASTEXITCODE -ne 0) {
+              throw "NuGet publishing failed for $($_.Name)."
+            }
+          }
         shell: pwsh
