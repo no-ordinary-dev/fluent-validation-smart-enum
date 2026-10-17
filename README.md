@@ -116,3 +116,8 @@ RuleFor(x => x.OptionalPriorityId)
 
 NuGet.org publishing uses [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
 with GitHub OIDC instead of a stored API key.
+
+Release packages are author-signed using an HSM-backed certificate in Azure Key
+Vault before publishing to NuGet.org. See the [NuGet signing setup guide](docs/nuget-signing.md)
+for Azure provisioning, certificate issuance, GitHub configuration, and renewal.
+GitHub Packages and ordinary build artifacts remain unchanged.
